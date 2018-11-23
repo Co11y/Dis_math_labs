@@ -93,8 +93,8 @@ void sym_check(int ** matrix, int len, int len2) {
 		std::cout << "imposible to define symetricality" << std::endl;
 		return;
 	}
-	for (int i = 1; i < len ; i++) {
-		for (int k = 1; k < len2 ; k++) {
+	for (int i = 1; i < len; i++) {
+		for (int k = 1; k < len2; k++) {
 			if (matrix[i][k] != matrix[k][i]) {
 				std::cout << "matrix is not symetrical" << std::endl;
 				return;
@@ -105,8 +105,36 @@ void sym_check(int ** matrix, int len, int len2) {
 	return;
 }
 
-// transititvitu check 
-void tran_check(int **matrix, int len, int len)
+
+int tran_check(int **matrix, int len, int len2)
+{
+	int k = len;
+	int transitive = 0;
+	for (int i = 0; i < len; i++)
+	{
+		for (int j = 0; j < len; j++)
+		{
+			for (int i = 0; i < len; i++)
+			{
+				if (matrix[i][j] == 1 && matrix[j][k] == 1 && matrix[i][k] == 1)
+{
+					transitive = 1;
+				}
+				else
+				{
+					std::cout << "this matrix is antitransitive" << std::endl;
+					return 0;
+				}
+			}
+		}
+	}
+	if (transitive)
+		std::cout << "this matrix is transitive" << std::endl;
+	else
+		std::cout << "this natrix is not transitive" << std::endl;
+	return 1;
+}
+
 
 int main() {
 	// creating set objects
@@ -135,10 +163,10 @@ int main() {
 	}
 
 	// filling with set numbers
-	for (int i = 1; i < len2; i++) {
+	for (int i = 1; i < len; i++) {
 		matrix[i][0] = arr[i - 1];
 	}
-	for (int i = 1; i < len; i++) {
+	for (int i = 1; i < len2; i++) {
 		matrix[0][i] = arr2[i - 1];
 	}
 
@@ -148,7 +176,7 @@ int main() {
 			int x = matrix[i][0];
 			int y = matrix[0][k];
 			if ((2 * x - y) < 3) {
-				matrix[k][i] = 1;
+				matrix[i][k] = 1;
 			}
 		}
 	}
@@ -179,6 +207,7 @@ int main() {
 
 	reflex_check(matrix, len, len2);
 	sym_check(matrix, len, len2);
+	tran_check(matrix, len, len2);
 
 	system("pause");
 }
