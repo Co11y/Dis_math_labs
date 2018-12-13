@@ -7,6 +7,7 @@ typedef struct min min;
 typedef struct min {
 	int min;
 	int vertex1, vertex2;
+	vertex * to;
 }min;
 
 typedef struct vertex {
@@ -14,6 +15,7 @@ typedef struct vertex {
 	struct vertex * next;
 	min min;
 	int in_tree = 0;
+	int way = 1000;
 
 	edge * head = nullptr;
 
@@ -22,6 +24,7 @@ typedef struct vertex {
 typedef struct edge {
 	int vertex1, vertex2, price;
 	struct edge * next;
+	vertex * to;
 }edge;
 
 
@@ -34,7 +37,7 @@ void add_vertex(vertex * & head, int vertex_value) {
 
 	if (!head) {
 		new_vertex->next = NULL;
-		head  = new_vertex;
+		head = new_vertex;
 		return;
 	}
 	vertex * tracer = head;
@@ -47,6 +50,7 @@ void add_vertex(vertex * & head, int vertex_value) {
 
 }
 
+// mb bug here
 void find_min_l(vertex * & element) {
 
 	edge * tracer = element->head;
@@ -57,6 +61,7 @@ void find_min_l(vertex * & element) {
 			element->min.min = tracer->price;
 			element->min.vertex1 = tracer->vertex1;
 			element->min.vertex2 = tracer->vertex2;
+			element->min.to = tracer->to;
 		}
 
 		tracer = tracer->next;
@@ -87,7 +92,7 @@ void delete_edge(vertex * & head, int vertex1, int vertex2) {
 				//	tracer_edge = NULL;
 				//}
 
-         }
+			}
 
 			while (tracer_edge != NULL) {
 
@@ -116,7 +121,7 @@ void delete_edge(vertex * & head, int vertex1, int vertex2) {
 
 // you created new struct min to get data about vertixe that minimum effect, to use func in tree to finish algo becouse it was skiping som elements
 void find_min_tree(vertex * head, min * & minimal) {
-	 minimal->min = 100;
+	minimal->min = 100;
 	vertex * tracer = head;
 
 	while (tracer != NULL) {
@@ -136,12 +141,32 @@ void find_min_tree(vertex * head, min * & minimal) {
 	}
 }
 
-void add_edge_body(vertex * & vertex_node, int vertex1, int vertex2, int price) {
-	
+vertex * search(vertex * head, int vert_val) {
+
+	vertex * tracer = head; 
+
+	while (tracer != NULL) {
+
+		if (tracer->vertex == vert_val) {
+			return tracer;
+		}
+		
+		tracer = tracer->next;
+	}
+	return NULL;
+}
+
+void add_edge_body(vertex *  head, vertex * & vertex_node, int vertex1, int vertex2, int price) {
+
 	edge * new_edge = new(edge);
-	new_edge->vertex1 = vertex1;
-	new_edge->vertex2 = vertex2;
+	new_edge->vertex1 =  vertex_node->vertex;
+	int vert = 1;
+	if (vertex_node->vertex != vertex1) vert = vertex1;
+	else if (vertex_node->vertex != vertex2) vert = vertex2;
+	new_edge->vertex2 = vert;
 	new_edge->price = price;
+	// 111
+	new_edge->to = search(head, new_edge->vertex2);
 
 	if (!vertex_node->head) {
 		new_edge->next = NULL;
@@ -165,7 +190,7 @@ void add_edge(vertex *  head, int vertex_value1, int vertex_value2, int price) {
 
 		if ((tracer->vertex == vertex_value1) || (tracer->vertex == vertex_value2)) {
 
-			add_edge_body(tracer,  vertex_value1,  vertex_value2,  price);
+			add_edge_body(head, tracer, vertex_value1, vertex_value2, price);
 			find_min_l(tracer);
 
 		}
@@ -185,7 +210,7 @@ void printe(vertex * head) {
 		while (tracer_edge != NULL) {
 
 
-			std::cout << "This is vertexes " << tracer_edge->vertex1 << ' ' << tracer_edge->vertex2 << ' ' << "this is price " <<  tracer_edge->price << std::endl;
+			std::cout << "This is vertexes " << tracer_edge->vertex1 << ' ' << tracer_edge->vertex2 << ' ' << "this is price " << tracer_edge->price << std::endl;
 
 			tracer_edge = tracer_edge->next;
 
@@ -200,7 +225,7 @@ void add_to_tree(vertex * & head, int vertex1, int vertex2) {
 	vertex * tracer = head;
 
 	while (tracer != NULL) {
-		
+
 		if (tracer->vertex == vertex1 || tracer->vertex == vertex2) {
 			tracer->in_tree = 1;
 		}
@@ -223,7 +248,7 @@ int if_in_tree(vertex * head, int vertex_value) {
 			}
 
 		}
-		
+
 		tracer = tracer->next;
 	}
 	return 0;
@@ -241,7 +266,7 @@ void prima_algo(vertex * & head) {
 		min * minimal = new(min);
 		find_min_tree(head, minimal);
 		if (i != 0) {
-			if ( (if_in_tree(head, minimal->vertex1)) && (if_in_tree(head, minimal->vertex2)) ) {
+			if ((if_in_tree(head, minimal->vertex1)) && (if_in_tree(head, minimal->vertex2))) {
 				delete_edge(head, minimal->vertex1, minimal->vertex2);
 			}
 		}
@@ -272,8 +297,69 @@ void prima_algo(vertex * & head) {
 	}
 }
 
+void go_to();
+
+void dijkstra_algo(vertex * & head, vertex * & last, int goal) {
+
+	last = head;
+	last->way = 0;
+
+	vertex * tracer = head;
+
+	while (true) {
+
+		if (last->vertex == goal) return;
+
+			edge * tracer_edge = last->head;
+			find_min_l(last);
+			if ((last->min.to)->in_tree) {
+				delete_edge(head, last->min.vertex1, last->min.vertex2);
+				find_min_l(last);
+			}
+
+			while (tracer_edge != NULL) {
+				// bug with to
+				if (tracer_edge->vertex2 == goal) {
+					std::cout << "found";
+					return;
+				}
+				if ((tracer_edge->to)->way > (last->way + tracer_edge->price)) {
+
+					(tracer_edge->to)->way = (last->way + tracer_edge->price);
+
+				}
+				tracer_edge = tracer_edge->next;
+
+			}
+			(last->min.to)->in_tree = 1;
+			//if ((last->min.to)->in_tree) {
+			//	delete_edge(head, last->min.vertex1, last->min.vertex2);
+			//	tracer_edge = last->head;
+			//	continue;
+			//}
+			vertex * tmp = last->min.to;
+			delete_edge(head, last->min.vertex1, last->min.vertex2);
+			last = tmp;
+			std::cout << "currently in " << last->vertex << std::endl;
+
+
+
+
+
+
+
+
+
+	}
+
+
+
+
+}
+
 int main() {
 	vertex * head = nullptr;
+	vertex * last;
 
 
 	add_vertex(head, 1);
@@ -287,44 +373,119 @@ int main() {
 	add_vertex(head, 9);
 	add_vertex(head, 10);
 	add_vertex(head, 11);
+	add_vertex(head, 12);
+	add_vertex(head, 13);
+	add_vertex(head, 14);
+	add_vertex(head, 15);
+	add_vertex(head, 16);
+	add_vertex(head, 17);
+	add_vertex(head, 18);
+	add_vertex(head, 19);
+	add_vertex(head, 20);
+	add_vertex(head, 21);
+	add_vertex(head, 22);
+	add_vertex(head, 23);
+	add_vertex(head, 24);
+	add_vertex(head, 25);
+	add_vertex(head, 26);
+	add_vertex(head, 27);
+	add_vertex(head, 28);
+	add_vertex(head, 29);
+	add_vertex(head, 30);
 
-	// creating edges
+	add_edge(head, 1, 2, 6);
+	add_edge(head, 1, 6, 4);
 
-	add_edge(head, 1, 4, 3);
-	add_edge(head, 1, 3, 2);
-	add_edge(head, 1, 2, 1);
+	add_edge(head, 2, 3, 3);
+	add_edge(head, 2, 7, 2);
+
+	add_edge(head, 3, 4, 5);
+	add_edge(head, 3, 8, 1);
+
+	add_edge(head, 4, 5, 3);
+	add_edge(head, 4, 9, 7);
+
+	add_edge(head, 5, 10, 4);
+
+
+	add_edge(head, 6, 11, 1);
+	add_edge(head, 6, 7, 8);
+
+	add_edge(head, 7, 12, 1);
+	add_edge(head, 7, 8, 7);
+
+	add_edge(head, 8, 13, 3);
+	add_edge(head, 8, 9, 2);
+
+	add_edge(head, 9, 14, 3);
+	add_edge(head, 9, 10, 2);
+
+	add_edge(head, 10, 15, 7);
 
 
 
-	add_edge(head, 2, 5, 3);
-	add_edge(head, 2, 7, 4);
+	add_edge(head, 11, 16, 1);
+	add_edge(head, 11, 11, 3);
 
-	add_edge(head, 3, 5, 7);
-	add_edge(head, 3, 6, 6);
+	add_edge(head, 12, 17, 4);
+	add_edge(head, 12, 13, 1);
 
-	add_edge(head, 4, 6, 2);
-	add_edge(head, 4, 7, 4);
+	add_edge(head, 13, 18, 7);
+	add_edge(head, 13, 14, 7);
 
-	add_edge(head, 5, 8, 7);
-	add_edge(head, 5, 9, 5);
+	add_edge(head, 14, 19, 1);
+	add_edge(head, 14, 15, 3);
 
-	add_edge(head, 6, 8, 7);
-	add_edge(head, 6, 10, 3);
+	add_edge(head, 15, 20, 3);
 
-	add_edge(head, 7, 9, 5);
-	add_edge(head, 7, 10, 4);
 
-	add_edge(head, 8, 11, 4);
+	add_edge(head, 16, 21, 3);
+	add_edge(head, 16, 17, 1);
 
-	add_edge(head, 9, 11, 1);
+	add_edge(head, 17, 22, 2);
+	add_edge(head, 17, 18, 4);
 
-	add_edge(head, 10, 11, 2);
+	add_edge(head, 18, 23, 5);
+	add_edge(head, 18, 19, 8);
+
+	add_edge(head, 19, 24, 1);
+	add_edge(head, 19, 20, 8);
+
+	add_edge(head, 20, 25, 3);
+
+
+	add_edge(head, 21, 26, 5);
+	add_edge(head, 21, 22, 3);
+
+	add_edge(head, 22, 27, 4);
+	add_edge(head, 22, 23, 1);
+
+	add_edge(head, 23, 28, 2);
+	add_edge(head, 23, 24, 4);
+
+	add_edge(head, 24, 29, 8);
+	add_edge(head, 24, 25, 1);
+
+	add_edge(head, 25, 30, 6);
+
+
+	add_edge(head, 26, 27, 7);
+
+	add_edge(head, 27, 28, 7);
+
+	add_edge(head, 28, 29, 5);
+
+	add_edge(head, 29, 30, 7);
+
+
+
+
+
+
 
 	printe(head);
 	std::cout << "--------------------------------" << std::endl;
-	printe(head);
-
-	prima_algo(head);
+	dijkstra_algo(head, last, 4);
 
 	system("pause");
 }
