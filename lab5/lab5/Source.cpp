@@ -262,47 +262,6 @@ int if_in_tree(vertex * head, int vertex_value) {
 
 }
 
-void prima_algo(vertex * & head) {
-	vertex * tracer = head;
-	tracer->in_tree = 1;
-
-	int i = 0;
-
-	while ((tracer != NULL) && (i != 11)) {
-		int add = 0;
-		min * minimal = new(min);
-		find_min_tree(head, minimal);
-		if (i != 0) {
-			if ((if_in_tree(head, minimal->vertex1)) && (if_in_tree(head, minimal->vertex2))) {
-				delete_edge(head, minimal->vertex1, minimal->vertex2);
-			}
-		}
-
-		if (tracer->in_tree) {
-
-			edge * tracer_edge = tracer->head;
-
-			while (tracer_edge != NULL) {
-
-				if (tracer_edge->price == minimal->min) {
-					std::cout << "vertex " << tracer_edge->vertex1 << ' ' << tracer_edge->vertex2 << ' ' << "price is " << tracer_edge->price << std::endl;
-					add_to_tree(head, tracer_edge->vertex1, tracer_edge->vertex2);
-					delete_edge(head, tracer_edge->vertex1, tracer_edge->vertex2);
-					tracer = head;
-					add = 1;
-					i++;
-					break;
-				}
-
-				tracer_edge = tracer_edge->next;
-			}
-
-		}
-		if (add) continue;
-		tracer = tracer->next;
-
-	}
-}
 
 
 void find_min_way(vertex * head, vertex * & min_node) {
