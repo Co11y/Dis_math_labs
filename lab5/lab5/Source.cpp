@@ -17,6 +17,12 @@ typedef struct vertex {
 	int in_tree = 0;
 	int way = 1000;
 
+	int way_vertex1;
+	int way_vertex2;
+	struct vertex * way_to;
+
+	int annon = 0;
+
 	edge * head = nullptr;
 
 }vertex;
@@ -131,6 +137,7 @@ void find_min_tree(vertex * head, min * & minimal) {
 				minimal->min = tracer->min.min;
 				minimal->vertex1 = tracer->min.vertex1;
 				minimal->vertex2 = tracer->min.vertex2;
+				minimal->to = tracer->min.to;
 
 			}
 
@@ -297,69 +304,150 @@ void prima_algo(vertex * & head) {
 	}
 }
 
-void go_to();
 
-void dijkstra_algo(vertex * & head, vertex * & last, int goal) {
-
-	last = head;
-	last->way = 0;
+void find_min_way(vertex * head, vertex * & min_node) {
+	int min_com = 1000;
+	vertex * min_way_to = head;
 
 	vertex * tracer = head;
 
-	while (true) {
+	while (tracer != NULL) {
 
-		if (last->vertex == goal) return;
+		if (tracer->in_tree) {
 
-			edge * tracer_edge = last->head;
-			find_min_l(last);
-			if ((last->min.to)->in_tree) {
-				delete_edge(head, last->min.vertex1, last->min.vertex2);
-				find_min_l(last);
+			if (min_com > tracer->way && (tracer->way > 0)) {
+				min_com = tracer->way;
+				min_way_to = tracer;
 			}
 
-			while (tracer_edge != NULL) {
-				// bug with to
-				if (tracer_edge->vertex2 == goal) {
-					std::cout << "found";
-					return;
-				}
-				if ((tracer_edge->to)->way > (last->way + tracer_edge->price)) {
-
-					(tracer_edge->to)->way = (last->way + tracer_edge->price);
-
-				}
-				tracer_edge = tracer_edge->next;
-
-			}
-			(last->min.to)->in_tree = 1;
-			//if ((last->min.to)->in_tree) {
-			//	delete_edge(head, last->min.vertex1, last->min.vertex2);
-			//	tracer_edge = last->head;
-			//	continue;
-			//}
-			vertex * tmp = last->min.to;
-			delete_edge(head, last->min.vertex1, last->min.vertex2);
-			last = tmp;
-			std::cout << "currently in " << last->vertex << std::endl;
+		}
 
 
-
-
-
-
-
-
+		tracer = tracer->next;
 
 	}
 
+	min_node = min_way_to;
+}
 
 
+int find_min_way(vertex * head) {
+	int min_way = 1000;
+
+	vertex * tracer = head;
+
+	while(tracer != NULL) {
+		if ( (tracer->way < 1000) && (tracer->way > 0)) {
+
+			if (tracer->way < min_way) {
+				min_way = tracer->way;
+			}
+
+		}
+
+		tracer = tracer->next;
+
+	}
+	
+	return min_way;
+
+}
+
+void update_neib(vertex * node) {
+
+	edge * tracer_edge = node->head;
+	int min_way_neib = 1000;
+
+	while (tracer_edge != NULL) {
+
+
+		if (tracer_edge->to->way > (tracer_edge->price + node->way)) {
+
+
+			tracer_edge->to->way = tracer_edge->price + node->way;
+			if (tracer_edge->to->way < min_way_neib) {
+
+				node->way_vertex1 = tracer_edge->vertex1;
+				node->way_vertex2 = tracer_edge->vertex2;
+				node->way_to = tracer_edge->to;
+
+				min_way_neib = tracer_edge->to->way;
+
+			}
+
+		}
+		tracer_edge = tracer_edge->next;
+	}
+
+}
+
+void update_own(vertex * node) {
+
+	edge * tracer_edge = node->head;
+
+	find_min_l(node);
+
+	node->way = node->min.min;
+	node->way_vertex1 = node->min.vertex1;
+	node->way_vertex2 = node->min.vertex2;
+	node->way_to = node->min.to;
+}
+
+void clean_visited(vertex * node, vertex * & head) {
+
+	edge * tracer_edge = node->head;
+
+	while (tracer_edge != NULL) {
+
+		if (tracer_edge->to->in_tree) {
+			delete_edge(head, tracer_edge->vertex1, tracer_edge->vertex2);
+		}
+
+		tracer_edge = tracer_edge->next;
+
+	}
+
+}
+
+
+void dijkstra_algo(vertex * & head, int goal) {
+
+	vertex * last = head;
+	last->way = 0;
+	last->in_tree = 1;
+
+	min * edge_to_go = new(min);
+
+	while (last->vertex != goal) {
+
+		update_neib(last);
+
+		find_min_l(last);
+		
+
+		find_min_tree(head, edge_to_go);
+
+		last = edge_to_go->to;
+
+		delete_edge(head, edge_to_go->vertex1, edge_to_go->vertex2);
+
+		if (!last->annon) {
+
+				std::cout << "moved to " << last->vertex << " from " <<edge_to_go->vertex1 << std::endl;
+
+		}
+
+		last->annon = 1;
+
+		last->in_tree = 1;
+
+
+	}
 
 }
 
 int main() {
 	vertex * head = nullptr;
-	vertex * last;
 
 
 	add_vertex(head, 1);
@@ -396,6 +484,7 @@ int main() {
 	add_edge(head, 1, 2, 6);
 	add_edge(head, 1, 6, 4);
 
+
 	add_edge(head, 2, 3, 3);
 	add_edge(head, 2, 7, 2);
 
@@ -408,8 +497,11 @@ int main() {
 	add_edge(head, 5, 10, 4);
 
 
+
 	add_edge(head, 6, 11, 1);
 	add_edge(head, 6, 7, 8);
+
+
 
 	add_edge(head, 7, 12, 1);
 	add_edge(head, 7, 8, 7);
@@ -425,7 +517,7 @@ int main() {
 
 
 	add_edge(head, 11, 16, 1);
-	add_edge(head, 11, 11, 3);
+	add_edge(head, 11, 12, 3);
 
 	add_edge(head, 12, 17, 4);
 	add_edge(head, 12, 13, 1);
@@ -485,7 +577,7 @@ int main() {
 
 	printe(head);
 	std::cout << "--------------------------------" << std::endl;
-	dijkstra_algo(head, last, 4);
+	dijkstra_algo(head,  5);
 
 	system("pause");
 }

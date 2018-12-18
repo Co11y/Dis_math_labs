@@ -231,6 +231,7 @@ int if_in_tree(vertex * head, int vertex_value) {
 }
 
 void prima_algo(vertex * & head) {
+	int price_forest = 0;
 	vertex * tracer = head;
 	tracer->in_tree = 1;
 
@@ -255,6 +256,7 @@ void prima_algo(vertex * & head) {
 				if (tracer_edge->price == minimal->min) {
 					std::cout << "vertex " << tracer_edge->vertex1 << ' ' << tracer_edge->vertex2 << ' ' << "price is " << tracer_edge->price << std::endl;
 					add_to_tree(head, tracer_edge->vertex1, tracer_edge->vertex2);
+					price_forest += tracer_edge->price;
 					delete_edge(head, tracer_edge->vertex1, tracer_edge->vertex2);
 					tracer = head;
 					add = 1;
@@ -270,6 +272,7 @@ void prima_algo(vertex * & head) {
 		tracer = tracer->next;
 
 	}
+	std::cout << "price of the forest is " << price_forest << std::endl;
 }
 
 int main() {
