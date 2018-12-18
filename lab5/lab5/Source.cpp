@@ -536,7 +536,7 @@ int main() {
 
 	printe(head);
 	std::cout << "--------------------------------" << std::endl;
-	dijkstra_algo(head,  5);
+	dijkstra_algo(head,  11);
 
 	system("pause");
 }
